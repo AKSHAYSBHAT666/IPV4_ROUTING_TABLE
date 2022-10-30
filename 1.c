@@ -1,9 +1,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include <stdint.h>
+#define create_table(t) table t;\
+		initialise(&t)
 
 //01111011100000000101000000001001
 //123.128.80.9/10 
+//128.128.128.128/32
 
 typedef struct NODE mtrie_node;
 typedef struct TABLE table;
@@ -11,9 +14,9 @@ typedef enum bit_type {ZERO,ONE,DONT_CARE,BIT_TYPE_MAX} BIT_TYPE;
 
 struct NODE
 {
-	uint8_t prefix[32];
-	uint8_t wildcard[32];
-	uint8_t prefix_len;
+	int prefix[32];
+	int wildcard[32];
+	int prefix_len;
 	
 	mtrie_node* parent;
 	mtrie_node* child[3];
@@ -26,12 +29,35 @@ struct TABLE
 	void	(*fptr_insert)(table*,char*);
 };
 
+
+int create(table*tt,mtrie_node*mn,int index)
+{
+	if((tt->mroot).child[index]==NULL)
+	{
+		// if node is not present.
+		(tt->mroot).child[index]=mn;
+		printf("\nentered first time\n");
+		return 1;
+	}
+	else
+	{
+		int ans=1;
+		int i=0;
+		printf("\nnot first time\n");
+		mtrie_node*temp=(tt->mroot).child[0];
+		temp->child[0]=mn;
+		return 1;
+	}
+	return 0;
+}
+
+
 void insert(table*tt,char*str)
 {
 	int sum=0;
 	int shift=0;
 	
-	mtrie_node*mnode=(mtrie_node*)malloc(sizeof(tt->mroot));
+	mtrie_node*mnode=malloc(sizeof(mtrie_node));//node holding current ip;
 	mnode->parent=NULL;
 	for(int i=0;i<3;i++) mnode->child[i]=NULL;
 	
@@ -45,7 +71,6 @@ void insert(table*tt,char*str)
 			// to get the 32-bit representation.
 			sum-=str[i]-'0';
 			sum=sum/10;
-			printf("sum:=%d\n",sum);
 			for(int k=0;k<8;k++)
 			{
 				if(sum & (1<<(k)))	mnode->prefix[7-k+shift]=1;
@@ -59,7 +84,6 @@ void insert(table*tt,char*str)
 			// to calculate wildcard and subnet-mask.
 			sum-=str[i]-'0';
 			sum=sum/10;
-			printf("sum:=%d\n",sum);
 			for(int k=0;k<8;k++)
 			{
 				if(sum & (1<<(k)))	mnode->prefix[7-k+shift]=1;
@@ -78,14 +102,46 @@ void insert(table*tt,char*str)
 		}
 	}
 	// processing of ip completed, proceed to insertion.
+	
+	
+	if(mnode->prefix[0]==0)
+	{
+		printf("\nfirst bit 0\n");
+		create(tt,mnode,0);
+	}
+	else
+	{
+		printf("\nfirst bit 1\n");
+		create(tt,mnode,1);
+	}
+	
+	printf("\n");
 };
+
+void initialise(table*tt)
+{
+	(tt->mroot).parent=NULL;
+	for(int i=0;i<3;i++) (tt->mroot).child[i]=NULL;
+	
+	tt->fptr_insert=insert;
+}
 
 int main()
 {
-		table r1;
-		char *str=malloc(sizeof(char)*50);
-		scanf("%[^\n]s",str);
-		insert(&r1,str);
+			create_table(r1);
+			printf("is inserted?:%d\n",(r1.mroot).child[0]!=NULL);
+			char *str=malloc(sizeof(char)*50);
+			scanf("%s",str);
+			r1.fptr_insert(&r1,str);
+			char *str1=malloc(sizeof(char)*50);
+			scanf("%s",str1);
+			r1.fptr_insert(&r1,str1);
+			printf("\n");
+			for(int i=0;i<32;i++)
+			{
+				printf("%d",r1.mroot.child[0]->child[0]->prefix[i]);
+			}
+			
 }
 
 
