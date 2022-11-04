@@ -5,9 +5,6 @@
 #define create_table(t) table t;\
 		initialise(&t)
 
-//01111011100000000101000000001001
-//123.128.80.9/10 
-//128.128.128.128/32
 /*
 128.2.0.0/3
 128.2.4.0/4
@@ -34,7 +31,7 @@ struct TABLE
 	mtrie_node mroot;
 	//function pointer's to interface each of them.
 	void	(*fptr_insert)(table*,char*);
-	int		(*fptr_lookup)(table*,char*);
+	int	(*fptr_lookup)(table*,char*);
 };
 
 
